@@ -1,0 +1,16 @@
+.env
+*.pyc
+__pycache__/
+downloads/
+
+# 이미지 데이터 (R2로 관리)
+reference/
+film_grab_index.json
+
+# 빌드 산출물
+viewer/node_modules/
+viewer/.next/
+viewer/public/index.json
+
+# 캐시
+_thumbs/
