@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'DMCA Policy — Reference Library',
+  title: 'DMCA Policy — AINSPIRE REF',
 }
 
 export default function DmcaPage() {
@@ -76,7 +76,6 @@ export default function DmcaPage() {
               >
                 wookjong00@ainspire.co.kr
               </a>
-              <span className="text-[#555] text-xs ml-2">{/* TODO: replace with actual email */}</span>
             </p>
             <p className="mb-3">Your notice must include:</p>
             <ol className="flex flex-col gap-2 pl-4">
