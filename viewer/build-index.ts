@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { buildIndex } from './src/lib/data'
 
-const OUTPUT_PATH = path.resolve('public/index.json')
+const OUTPUT_PATH = path.resolve('public/data.json')
 
 const data = buildIndex()
 fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true })
