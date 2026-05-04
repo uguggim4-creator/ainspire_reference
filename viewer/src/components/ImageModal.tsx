@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { ImageMeta } from '@/types'
 import { FilterOptions } from '@/components/FilterBar'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Download } from 'lucide-react'
 
 interface ImageModalProps {
   image: ImageMeta
@@ -202,6 +202,17 @@ export default function ImageModal({ image, images, filterOptions, onClose, onNa
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="px-4 py-3 border-t border-[#1a1a1a]">
+            <a
+              href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ainspire/originals/${image.work_key}/${image.filename}`}
+              download={image.filename}
+              className="w-full h-9 bg-white text-black text-xs font-medium rounded-lg hover:bg-[#eee] transition-colors flex items-center justify-center gap-2"
+            >
+              <Download size={13} />
+              Download JPG
+            </a>
           </div>
         </div>
       </div>
