@@ -3,7 +3,7 @@ import './globals.css'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'REFERENCE LIBRARY',
+  title: 'AINSPIRE REF',
   description: 'Visual reference image library',
 }
 

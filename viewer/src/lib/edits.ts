@@ -12,7 +12,7 @@ export async function fetchAllEdits(): Promise<Map<string, Partial<ImageMeta>>> 
   return map
 }
 
-export async function saveEdit(imageId: string, field: string, value: string | string[]) {
+export async function saveEdit(imageId: string, field: string, value: string | string[] | boolean) {
   const { data: existing } = await supabase
     .from('image_edits')
     .select('edits')

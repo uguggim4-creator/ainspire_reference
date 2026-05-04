@@ -10,7 +10,7 @@ import ImageModal from '@/components/ImageModal'
 import SelectionToolbar from '@/components/Toolbar'
 import CollectionPanel from '@/components/CollectionPanel'
 import { getCollections } from '@/lib/collections'
-import { loadStore, filterImages, getImageById, getAllImages } from '@/lib/store'
+import { loadStore, filterImages, getImageById, getAllImages, removeImage } from '@/lib/store'
 import { saveEdit } from '@/lib/edits'
 
 const DEFAULT_FILTERS: FilterState = {
@@ -43,6 +43,12 @@ export default function Home() {
   const [isPending, startTransition] = useTransition()
   const [total, setTotal] = useState(0)
   const [loadedCount, setLoadedCount] = useState(0)
+  const [isEditorMode, setIsEditorMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('editor_mode') === '1'
+    }
+    return false
+  })
 
   // 점진적 로드
   useEffect(() => {
@@ -143,6 +149,13 @@ export default function Home() {
   const handleOpenModal = useCallback((image: ImageMeta) => setModalImage(image), [])
   const handleCloseModal = useCallback(() => setModalImage(null), [])
 
+  const handleDelete = useCallback(async (imageId: string) => {
+    await saveEdit(imageId, '_excluded', true)
+    removeImage(imageId)
+    setFilteredIds(prev => prev.filter(id => id !== imageId))
+    setModalImage(null)
+  }, [])
+
   const handleTagEdit = useCallback(async (imageId: string, field: string, value: string | string[]) => {
     const img = getImageById(imageId)
     if (img) {
@@ -165,6 +178,8 @@ export default function Home() {
         colorFilter={filters.palette_hex}
         onCollectionToggle={() => setShowCollection(s => !s)}
         showCollection={showCollection}
+        isEditorMode={isEditorMode}
+        onEditorModeChange={setIsEditorMode}
       />
 
       <FilterBar
@@ -218,6 +233,8 @@ export default function Home() {
           onClose={handleCloseModal}
           onNavigate={handleOpenModal}
           onTagEdit={handleTagEdit}
+          isEditorMode={isEditorMode}
+          onDelete={handleDelete}
         />
       )}
 

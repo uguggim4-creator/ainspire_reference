@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { ImageMeta } from '@/types'
 import { FilterOptions } from '@/components/FilterBar'
-import { ChevronLeft, ChevronRight, X, Download } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Download, Trash2 } from 'lucide-react'
 
 interface ImageModalProps {
   image: ImageMeta
@@ -12,6 +12,8 @@ interface ImageModalProps {
   onClose: () => void
   onNavigate: (image: ImageMeta) => void
   onTagEdit: (imageId: string, field: string, value: string | string[]) => void
+  isEditorMode?: boolean
+  onDelete?: (imageId: string) => void
 }
 
 function TagSelect({
@@ -76,7 +78,7 @@ function TagMultiSelect({
   )
 }
 
-export default function ImageModal({ image, images, filterOptions, onClose, onNavigate, onTagEdit }: ImageModalProps) {
+export default function ImageModal({ image, images, filterOptions, onClose, onNavigate, onTagEdit, isEditorMode, onDelete }: ImageModalProps) {
   const currentIndex = images.findIndex(i => i.id === image.id)
   const d = image
   const opts = filterOptions
@@ -204,7 +206,7 @@ export default function ImageModal({ image, images, filterOptions, onClose, onNa
             )}
           </div>
 
-          <div className="px-4 py-3 border-t border-[#1a1a1a]">
+          <div className="px-4 py-3 border-t border-[#1a1a1a] space-y-2">
             <a
               href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ainspire/originals/${image.work_key}/${image.filename}`}
               download={image.filename}
@@ -213,6 +215,15 @@ export default function ImageModal({ image, images, filterOptions, onClose, onNa
               <Download size={13} />
               Download JPG
             </a>
+            {isEditorMode && onDelete && (
+              <button
+                onClick={() => onDelete(image.id)}
+                className="w-full h-9 border border-red-900 text-red-500 text-xs font-medium rounded-lg hover:bg-red-950 transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 size={13} />
+                Delete
+              </button>
+            )}
           </div>
         </div>
       </div>

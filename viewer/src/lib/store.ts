@@ -16,6 +16,11 @@ export function getFilterOptions() { return _filterOptions }
 export function getTotal() { return _allImages.length }
 export function getAllImages() { return _allImages }
 
+export function removeImage(id: string) {
+  _allImages = _allImages.filter(img => img.id !== id)
+  _imageMap.delete(id)
+}
+
 // index.json에서 직접 로드 (API 라우트 불필요)
 export async function loadStore(
   onFirstChunk: (images: ImageMeta[], options: FilterOptions) => void,
@@ -49,7 +54,17 @@ export async function loadStore(
     // edits 테이블 없어도 앱은 정상 동작
   }
 
-  onFirstChunk(images, options)
+  // _excluded: true인 이미지 제거
+  const excludedIds = new Set<string>()
+  for (const img of _allImages) {
+    if (img._excluded) excludedIds.add(img.id)
+  }
+  if (excludedIds.size > 0) {
+    _allImages = _allImages.filter(img => !excludedIds.has(img.id))
+    for (const id of excludedIds) _imageMap.delete(id)
+  }
+
+  onFirstChunk(_allImages, options)
   onProgress(images.length, images.length)
 
   _loaded = true
