@@ -207,14 +207,23 @@ export default function ImageModal({ image, images, filterOptions, onClose, onNa
           </div>
 
           <div className="px-4 py-3 border-t border-[#1a1a1a] space-y-2">
-            <a
-              href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ainspire/originals/${image.work_key}/${image.filename}`}
-              download={image.filename}
+            <button
+              onClick={async () => {
+                const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ainspire/originals/${image.work_key}/${image.filename}`
+                const res = await fetch(url)
+                const blob = await res.blob()
+                const blobUrl = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = blobUrl
+                a.download = image.filename
+                a.click()
+                URL.revokeObjectURL(blobUrl)
+              }}
               className="w-full h-9 bg-white text-black text-xs font-medium rounded-lg hover:bg-[#eee] transition-colors flex items-center justify-center gap-2"
             >
               <Download size={13} />
               Download JPG
-            </a>
+            </button>
             {isEditorMode && onDelete && (
               <button
                 onClick={() => onDelete(image.id)}
