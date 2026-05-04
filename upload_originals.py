@@ -1,8 +1,9 @@
-"""Supabase Storage에 원본 이미지 일괄 업로드
+"""Supabase Storage에 원본 이미지 일괄 업로드 (신규분만)
 
 사용법:
     python upload_originals.py              # 미리보기
     python upload_originals.py --apply      # 실제 업로드
+    python upload_originals.py --apply --all  # 전체 재업로드
 """
 import json
 import sys
@@ -18,6 +19,7 @@ SUPABASE_URL = "https://nxdkzhwcjfrykdfkuelm.supabase.co"
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54ZGt6aHdjamZyeWtkZmt1ZWxtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjExODE2NSwiZXhwIjoyMDc3Njk0MTY1fQ.LYT1JMADoIbAE5QA9aTZXLGJfaOhSZJs2__eh1Jm7nE")
 BUCKET = "ainspire"
 REFERENCE_DIR = Path("E:/Ainspire_reference/reference")
+UPLOADED_LOG = Path("E:/Ainspire_reference/.uploaded_originals.json")
 MAX_WORKERS = 4
 
 STORAGE_URL = f"{SUPABASE_URL}/storage/v1/object/{BUCKET}"
@@ -25,6 +27,16 @@ HEADERS = {
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "x-upsert": "true",
 }
+
+
+def load_uploaded() -> set[str]:
+    if UPLOADED_LOG.exists():
+        return set(json.loads(UPLOADED_LOG.read_text(encoding="utf-8")))
+    return set()
+
+
+def save_uploaded(uploaded: set[str]):
+    UPLOADED_LOG.write_text(json.dumps(sorted(uploaded), ensure_ascii=False), encoding="utf-8")
 
 
 def work_key(work: str) -> str:
@@ -72,13 +84,21 @@ def collect_images() -> list[tuple[Path, str, str]]:
 
 def main():
     apply = "--apply" in sys.argv
+    upload_all = "--all" in sys.argv
     items = collect_images()
 
-    total_size = sum(p.stat().st_size for p, _, _ in items)
-    print(f"대상: {len(items)}장 ({total_size / 1024 / 1024 / 1024:.1f}GB) | 모드: {'업로드' if apply else '미리보기'}")
+    uploaded = set() if upload_all else load_uploaded()
+    new_items = [(p, w, f) for p, w, f in items if f"{w}/{f}" not in uploaded]
+
+    total_size = sum(p.stat().st_size for p, _, _ in new_items)
+    print(f"전체: {len(items)}장 | 신규: {len(new_items)}장 ({total_size / 1024 / 1024:.0f}MB) | 모드: {'업로드' if apply else '미리보기'}", flush=True)
 
     if not apply:
         print(f"\n실제 업로드: python upload_originals.py --apply")
+        return
+
+    if not new_items:
+        print("업로드할 신규 이미지 없음")
         return
 
     success = 0
@@ -88,20 +108,23 @@ def main():
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
         futures = {
             pool.submit(upload_one, p, w, f): (w, f)
-            for p, w, f in items
+            for p, w, f in new_items
         }
         for i, future in enumerate(as_completed(futures), 1):
             path, ok, msg = future.result()
+            w, f = futures[future]
             if ok:
                 success += 1
+                uploaded.add(f"{w}/{f}")
             else:
                 fail += 1
                 print(f"  FAIL: {path} - {msg}", flush=True)
-            if i % 50 == 0 or i == len(items):
+            if i % 50 == 0 or i == len(new_items):
                 elapsed = time.time() - start
                 rate = i / elapsed if elapsed > 0 else 0
-                print(f"  [{i}/{len(items)}] {rate:.1f}/s | OK: {success} FAIL: {fail}", flush=True)
+                print(f"  [{i}/{len(new_items)}] {rate:.1f}/s | OK: {success} FAIL: {fail}", flush=True)
 
+    save_uploaded(uploaded)
     elapsed = time.time() - start
     print(f"\n완료: {success} 업로드, {fail} 실패 ({elapsed:.0f}초)")
 

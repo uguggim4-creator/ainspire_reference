@@ -1,8 +1,9 @@
-"""Supabase Storage에 썸네일 일괄 업로드
+"""Supabase Storage에 썸네일 일괄 업로드 (신규분만)
 
 사용법:
     python upload_to_supabase.py              # 미리보기
     python upload_to_supabase.py --apply      # 실제 업로드
+    python upload_to_supabase.py --apply --all  # 전체 재업로드
 """
 import json
 import sys
@@ -25,6 +26,7 @@ SUPABASE_URL = "https://nxdkzhwcjfrykdfkuelm.supabase.co"
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54ZGt6aHdjamZyeWtkZmt1ZWxtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjExODE2NSwiZXhwIjoyMDc3Njk0MTY1fQ.LYT1JMADoIbAE5QA9aTZXLGJfaOhSZJs2__eh1Jm7nE")
 BUCKET = "ainspire"
 REFERENCE_DIR = Path("E:/Ainspire_reference/reference")
+UPLOADED_LOG = Path("E:/Ainspire_reference/.uploaded_thumbs.json")
 THUMB_WIDTH = 480
 THUMB_QUALITY = 75
 MAX_WORKERS = 4
@@ -36,8 +38,17 @@ HEADERS = {
 }
 
 
+def load_uploaded() -> set[str]:
+    if UPLOADED_LOG.exists():
+        return set(json.loads(UPLOADED_LOG.read_text(encoding="utf-8")))
+    return set()
+
+
+def save_uploaded(uploaded: set[str]):
+    UPLOADED_LOG.write_text(json.dumps(sorted(uploaded), ensure_ascii=False), encoding="utf-8")
+
+
 def make_thumbnail(img_path: Path) -> bytes:
-    """이미지를 썸네일 JPEG bytes로 변환"""
     with Image.open(img_path) as img:
         img = img.convert("RGB")
         ratio = THUMB_WIDTH / img.width
@@ -50,12 +61,10 @@ def make_thumbnail(img_path: Path) -> bytes:
 
 
 def work_key(work: str) -> str:
-    """한글 work명을 Supabase-safe 키로 변환"""
     return hashlib.md5(work.encode()).hexdigest()[:8]
 
 
 def upload_one(img_path: Path, work: str, filename: str) -> tuple[str, bool, str]:
-    """썸네일 생성 + 업로드. (경로, 성공여부, 메시지) 반환"""
     storage_path = f"thumbs/{work_key(work)}/{filename}"
     try:
         data = make_thumbnail(img_path)
@@ -74,7 +83,6 @@ def upload_one(img_path: Path, work: str, filename: str) -> tuple[str, bool, str
 
 
 def collect_images() -> list[tuple[Path, str, str]]:
-    """업로드 대상 (이미지 경로, work명, 파일명) 수집"""
     items = []
     for work_dir in sorted(REFERENCE_DIR.iterdir()):
         if not work_dir.is_dir() or work_dir.name.startswith("_"):
@@ -82,10 +90,8 @@ def collect_images() -> list[tuple[Path, str, str]]:
         index_path = work_dir / "_index.json"
         if not index_path.exists():
             continue
-
         with open(index_path, encoding="utf-8") as f:
             entries = json.load(f)
-
         for entry in entries:
             if entry.get("_excluded") or not entry.get("is_scene"):
                 continue
@@ -98,15 +104,24 @@ def collect_images() -> list[tuple[Path, str, str]]:
 
 def main():
     apply = "--apply" in sys.argv
+    upload_all = "--all" in sys.argv
     items = collect_images()
-    print(f"대상: {len(items)}장 | 모드: {'업로드' if apply else '미리보기'}")
+
+    uploaded = set() if upload_all else load_uploaded()
+    new_items = [(p, w, f) for p, w, f in items if f"{w}/{f}" not in uploaded]
+
+    print(f"전체: {len(items)}장 | 신규: {len(new_items)}장 | 모드: {'업로드' if apply else '미리보기'}", flush=True)
 
     if not apply:
-        for _, work, fn in items[:10]:
-            print(f"  thumbs/{work}/{fn}")
-        if len(items) > 10:
-            print(f"  ... 외 {len(items) - 10}장")
+        for _, work, fn in new_items[:10]:
+            print(f"  thumbs/{work_key(work)}/{fn}")
+        if len(new_items) > 10:
+            print(f"  ... 외 {len(new_items) - 10}장")
         print(f"\n실제 업로드: python upload_to_supabase.py --apply")
+        return
+
+    if not new_items:
+        print("업로드할 신규 이미지 없음")
         return
 
     success = 0
@@ -116,22 +131,23 @@ def main():
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
         futures = {
             pool.submit(upload_one, p, w, f): (w, f)
-            for p, w, f in items
+            for p, w, f in new_items
         }
-
         for i, future in enumerate(as_completed(futures), 1):
             path, ok, msg = future.result()
+            w, f = futures[future]
             if ok:
                 success += 1
+                uploaded.add(f"{w}/{f}")
             else:
                 fail += 1
                 print(f"  FAIL: {path} - {msg}", flush=True)
-
-            if i % 100 == 0 or i == len(items):
+            if i % 100 == 0 or i == len(new_items):
                 elapsed = time.time() - start
                 rate = i / elapsed if elapsed > 0 else 0
-                print(f"  [{i}/{len(items)}] {rate:.1f}/s | OK: {success} FAIL: {fail}", flush=True)
+                print(f"  [{i}/{len(new_items)}] {rate:.1f}/s | OK: {success} FAIL: {fail}", flush=True)
 
+    save_uploaded(uploaded)
     elapsed = time.time() - start
     print(f"\n완료: {success} 업로드, {fail} 실패 ({elapsed:.0f}초)")
 
