@@ -1,6 +1,7 @@
 import { ImageMeta, FilterState } from '@/types'
 import { FilterOptions } from '@/components/FilterBar'
 import { paletteContainsColor } from '@/lib/color'
+import { fetchAllEdits } from '@/lib/edits'
 
 let _allImages: ImageMeta[] = []
 let _imageMap: Map<string, ImageMeta> = new Map()
@@ -35,6 +36,17 @@ export async function loadStore(
   for (const img of images) {
     _allImages.push(img)
     _imageMap.set(img.id, img)
+  }
+
+  // Supabase에서 수정된 태그 병합
+  try {
+    const editsMap = await fetchAllEdits()
+    for (const [id, edits] of editsMap) {
+      const img = _imageMap.get(id)
+      if (img) Object.assign(img, edits)
+    }
+  } catch {
+    // edits 테이블 없어도 앱은 정상 동작
   }
 
   onFirstChunk(images, options)

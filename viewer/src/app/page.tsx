@@ -11,6 +11,7 @@ import SelectionToolbar from '@/components/Toolbar'
 import CollectionPanel from '@/components/CollectionPanel'
 import { getCollections } from '@/lib/collections'
 import { loadStore, filterImages, getImageById, getAllImages } from '@/lib/store'
+import { saveEdit } from '@/lib/edits'
 
 const DEFAULT_FILTERS: FilterState = {
   angle: [],
@@ -142,6 +143,15 @@ export default function Home() {
   const handleOpenModal = useCallback((image: ImageMeta) => setModalImage(image), [])
   const handleCloseModal = useCallback(() => setModalImage(null), [])
 
+  const handleTagEdit = useCallback(async (imageId: string, field: string, value: string | string[]) => {
+    const img = getImageById(imageId)
+    if (img) {
+      ;(img as unknown as Record<string, unknown>)[field] = value
+      setModalImage({ ...img })
+    }
+    await saveEdit(imageId, field, value)
+  }, [])
+
   const loadingProgress = total > 0 && loadedCount < total
     ? `${loadedCount} / ${total}`
     : undefined
@@ -204,8 +214,10 @@ export default function Home() {
         <ImageModal
           image={modalImage}
           images={filteredImages}
+          filterOptions={filterOptions}
           onClose={handleCloseModal}
           onNavigate={handleOpenModal}
+          onTagEdit={handleTagEdit}
         />
       )}
 
