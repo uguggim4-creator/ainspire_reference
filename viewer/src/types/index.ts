@@ -20,6 +20,7 @@ export interface ImageMeta {
   imagePath: string
   id: string
   work_key: string
+  _excluded?: boolean
 }
 
 export interface FilterState {
