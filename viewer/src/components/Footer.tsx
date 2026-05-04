@@ -38,13 +38,6 @@ export default function Footer() {
               DMCA Policy
             </Link>
             <span className="text-[#333] text-xs">·</span>
-            <a
-              href="mailto:wookjong00@vavaland.co.kr"
-              className="text-[#555] text-xs hover:text-[#888] transition-colors"
-            >
-              Contact
-            </a>
-            <span className="text-[#333] text-xs">·</span>
             <Link
               href="/about"
               className="text-[#555] text-xs hover:text-[#888] transition-colors"

@@ -71,10 +71,10 @@ export default function DmcaPage() {
             <p className="mb-4">
               <span className="text-white font-medium">Email: </span>
               <a
-                href="mailto:wookjong00@vavaland.co.kr"
+                href="mailto:wookjong00@ainspire.co.kr"
                 className="text-[#6b8cff] hover:text-[#8aa4ff] transition-colors"
               >
-                wookjong00@vavaland.co.kr
+                wookjong00@ainspire.co.kr
               </a>
               <span className="text-[#555] text-xs ml-2">{/* TODO: replace with actual email */}</span>
             </p>
