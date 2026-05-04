@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'About — Reference Library',
+  title: 'About — AINSPIRE REF',
 }
 
 export default function AboutPage() {
@@ -82,11 +82,17 @@ export default function AboutPage() {
 
           <section>
             <h2 className="text-white text-xs font-medium tracking-[0.15em] uppercase mb-3">
-              Built for Education
+              Purpose & Disclaimer
             </h2>
             <p>
-              This library exists to help creators study and reference the visual language
-              of cinema. All images belong to their respective copyright holders.
+              본 사이트는 영상 제작자, 촬영 감독, 영화 전공 학생 등 영상 창작자를 위한
+              촬영 레퍼런스 용도로 운영됩니다. 무드보드 제작, 프리프로덕션, 촬영 기법 연구 등
+              교육적·창작적 목적에 한하여 활용할 수 있습니다.
+            </p>
+            <p className="mt-3">
+              모든 이미지의 저작권은 해당 영화 및 드라마의 제작사·배급사에 있으며,
+              본 사이트는 상업적 이용을 목적으로 하지 않습니다.
+              권리자의 요청이 있을 경우 즉시 해당 콘텐츠를 삭제합니다.
             </p>
             <p className="mt-3">
               <Link
