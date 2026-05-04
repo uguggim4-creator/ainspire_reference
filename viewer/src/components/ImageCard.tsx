@@ -22,6 +22,10 @@ function ImageCard({
 }: ImageCardProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const [imgLoaded, setImgLoaded] = useState(false)
+
+  // 팔레트 첫 번째 색상을 placeholder 배경으로 사용
+  const placeholderColor = image.palette_hex?.[0] || '#0a0a0a'
 
   useEffect(() => {
     const el = containerRef.current
@@ -41,6 +45,11 @@ function ImageCard({
     return () => observer.disconnect()
   }, [])
 
+  // 이미지 변경 시 로드 상태 리셋
+  useEffect(() => {
+    setImgLoaded(false)
+  }, [image.id])
+
   function handleClick(e: React.MouseEvent) {
     if ((e.target as HTMLElement).closest('[data-no-open]')) return
     onOpen(image)
@@ -53,13 +62,18 @@ function ImageCard({
       style={{ aspectRatio: '16/9' }}
       onClick={handleClick}
     >
-      <div className="w-full h-full overflow-hidden rounded-sm bg-[#0a0a0a] transition-transform duration-200 ease-out group-hover:scale-[1.02]">
+      <div
+        className="w-full h-full overflow-hidden rounded-sm transition-transform duration-200 ease-out group-hover:scale-[1.02]"
+        style={{ backgroundColor: placeholderColor }}
+      >
         {isVisible ? (
           <>
             <img
-              src={`/api/thumb/${encodeURIComponent(image.work)}/${image.filename}`}
+              src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ainspire/thumbs/${image.work_key}/${image.filename}`}
               alt={image.description}
-              className="w-full h-full object-cover"
+              loading="lazy"
+              onLoad={() => setImgLoaded(true)}
+              className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
             />
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -93,9 +107,7 @@ function ImageCard({
               </p>
             </div>
           </>
-        ) : (
-          <div className="w-full h-full bg-[#0a0a0a]" />
-        )}
+        ) : null}
       </div>
 
       <div

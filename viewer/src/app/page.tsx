@@ -53,14 +53,10 @@ export default function Home() {
         setTotal(images.length)
         setLoading(false)
       },
-      // 진행 상황
+      // 진행 상황 — 카운터만 갱신, 필터 재적용은 완료 시에만
       (loaded, serverTotal) => {
         setLoadedCount(loaded)
         setTotal(serverTotal)
-        // 백그라운드 로드 중 필터 재적용
-        startTransition(() => {
-          setFilteredIds(filterImages(filters))
-        })
       },
       // 완료
       () => {
@@ -179,7 +175,7 @@ export default function Home() {
                 Loading images... {loadingProgress}
               </div>
             )}
-            <div className={`transition-opacity duration-150 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
+            <div>
               <GalleryGrid
                 images={filteredImages}
                 selected={selectedIds}

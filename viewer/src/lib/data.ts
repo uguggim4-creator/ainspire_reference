@@ -1,8 +1,9 @@
 import fs from 'fs'
 import path from 'path'
+import crypto from 'crypto'
 import { ImageMeta } from '@/types'
 
-const REFERENCE_DIR = path.resolve('E:/pinterest/reference')
+const REFERENCE_DIR = path.resolve('E:/Ainspire_reference/reference')
 
 let cache: ImageMeta[] | null = null
 
@@ -111,6 +112,8 @@ export function buildIndex(): IndexData {
     time_of_day: img.time_of_day,
     reference_score: img.reference_score,
     palette_hex: img.palette_hex,
+    description: img.description,
+    work_key: crypto.createHash('md5').update(img.work).digest('hex').slice(0, 8),
   }))
 
   const options = {

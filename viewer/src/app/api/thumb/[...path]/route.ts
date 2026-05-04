@@ -5,8 +5,8 @@ import sharp from 'sharp'
 
 export const dynamic = 'force-dynamic'
 
-const REFERENCE_DIR = path.resolve('E:/pinterest/reference')
-const THUMB_CACHE = path.resolve('E:/pinterest/reference/_thumbs')
+const REFERENCE_DIR = path.resolve('E:/Ainspire_reference/reference')
+const THUMB_CACHE = path.resolve('E:/Ainspire_reference/reference/_thumbs')
 
 const THUMB_WIDTH = 480
 const THUMB_QUALITY = 75

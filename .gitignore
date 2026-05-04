@@ -10,7 +10,7 @@ film_grab_index.json
 # 빌드 산출물
 viewer/node_modules/
 viewer/.next/
-viewer/public/index.json
+viewer/.env.local
 
 # 캐시
 _thumbs/

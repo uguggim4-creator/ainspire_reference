@@ -15,13 +15,14 @@ REF = Path("reference")
 DEDUP_DIR = REF / "_dedup"
 
 # 중복 판정에 사용할 필드 (이 조합이 모두 같으면 "중복")
+# 색상·조명 관련(color_mood, saturation, lighting, time_of_day)은 제외
 FINGERPRINT_FIELDS = [
     "angle", "shot_size", "people_count",
-    "color_mood", "setting", "location_type", "lighting",
+    "setting", "location_type",
 ]
-FINGERPRINT_ARRAY_FIELDS = ["mood"]
+FINGERPRINT_ARRAY_FIELDS = ["mood", "composition"]
 
-MAX_PER_GROUP = 2  # 같은 태그 조합에서 최대 유지 장수
+MAX_PER_GROUP = 1  # 같은 태그 조합에서 최대 유지 장수
 
 
 def fingerprint(meta: dict) -> str:

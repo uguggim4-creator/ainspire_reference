@@ -4,7 +4,7 @@ import path from 'path'
 
 export const dynamic = 'force-dynamic'
 
-const REFERENCE_DIR = path.resolve('E:/pinterest/reference')
+const REFERENCE_DIR = path.resolve('E:/Ainspire_reference/reference')
 
 export async function GET(
   _req: NextRequest,

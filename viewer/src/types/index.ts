@@ -19,6 +19,7 @@ export interface ImageMeta {
   work: string
   imagePath: string
   id: string
+  work_key: string
 }
 
 export interface FilterState {

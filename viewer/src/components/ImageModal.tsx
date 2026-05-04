@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { ImageMeta } from '@/types'
 import { ChevronLeft, ChevronRight, X, Download } from 'lucide-react'
 
@@ -13,15 +13,6 @@ interface ImageModalProps {
 
 export default function ImageModal({ image, images, onClose, onNavigate }: ImageModalProps) {
   const currentIndex = images.findIndex(i => i.id === image.id)
-  const [detail, setDetail] = useState<ImageMeta | null>(null)
-
-  useEffect(() => {
-    setDetail(null)
-    fetch(`/api/detail/${encodeURIComponent(image.work)}/${image.filename}`)
-      .then(r => r.json())
-      .then(setDetail)
-      .catch(() => setDetail(null))
-  }, [image.id, image.work, image.filename])
 
   useEffect(() => {
     function handler(e: KeyboardEvent) {
@@ -49,7 +40,7 @@ export default function ImageModal({ image, images, onClose, onNavigate }: Image
     URL.revokeObjectURL(url)
   }
 
-  const d = detail || image
+  const d = image
 
   return (
     <div
@@ -64,7 +55,7 @@ export default function ImageModal({ image, images, onClose, onNavigate }: Image
       >
         <div className="flex-1 flex items-center justify-center bg-black relative min-w-0">
           <img
-            src={`/api/image/${encodeURIComponent(image.work)}/${image.filename}`}
+            src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ainspire/thumbs/${image.work_key}/${image.filename}`}
             alt={d.description || ''}
             className="max-w-full max-h-full object-contain"
           />

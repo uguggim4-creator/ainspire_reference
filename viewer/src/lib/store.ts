@@ -8,9 +8,6 @@ let _filterOptions: FilterOptions | null = null
 let _loaded = false
 let _loading = false
 
-const CHUNK_SIZE = 100
-const API_BASE = '/api/images'
-
 export function isLoaded() { return _loaded }
 export function isLoading() { return _loading }
 export function getImageById(id: string) { return _imageMap.get(id) }
@@ -18,7 +15,7 @@ export function getFilterOptions() { return _filterOptions }
 export function getTotal() { return _allImages.length }
 export function getAllImages() { return _allImages }
 
-// 점진적 로드: 첫 chunk 즉시 반환 → 나머지 백그라운드
+// index.json에서 직접 로드 (API 라우트 불필요)
 export async function loadStore(
   onFirstChunk: (images: ImageMeta[], options: FilterOptions) => void,
   onProgress: (loaded: number, total: number) => void,
@@ -27,43 +24,21 @@ export async function loadStore(
   if (_loaded || _loading) return
   _loading = true
 
-  // 1) 옵션 + 첫 페이지 동시 fetch
-  const [optRes, firstRes] = await Promise.all([
-    fetch('/api/options'),
-    fetch(`${API_BASE}?page=1&limit=${CHUNK_SIZE}`),
-  ])
+  const res = await fetch('/index.json')
+  const data = await res.json()
 
-  const optData = await optRes.json()
-  const firstData = await firstRes.json()
+  const images: ImageMeta[] = data.images
+  const options: FilterOptions = data.options
 
-  _filterOptions = optData as FilterOptions
-  const totalCount: number = firstData.total
+  _filterOptions = options
 
-  // 첫 chunk 저장
-  for (const img of firstData.images) {
+  for (const img of images) {
     _allImages.push(img)
     _imageMap.set(img.id, img)
   }
 
-  // 첫 화면 즉시 표시
-  onFirstChunk(firstData.images, _filterOptions!)
-  onProgress(_allImages.length, totalCount)
-
-  // 2) 나머지 백그라운드 로드
-  let page = 2
-  while (_allImages.length < totalCount) {
-    const res = await fetch(`${API_BASE}?page=${page}&limit=${CHUNK_SIZE}`)
-    const data = await res.json()
-    if (!data.images || data.images.length === 0) break
-
-    for (const img of data.images) {
-      _allImages.push(img)
-      _imageMap.set(img.id, img)
-    }
-
-    onProgress(_allImages.length, totalCount)
-    page++
-  }
+  onFirstChunk(images, options)
+  onProgress(images.length, images.length)
 
   _loaded = true
   _loading = false
