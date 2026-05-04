@@ -24,7 +24,7 @@ export async function loadStore(
   if (_loaded || _loading) return
   _loading = true
 
-  const res = await fetch('/index.json')
+  const res = await fetch('/data.json')
   const data = await res.json()
 
   const images: ImageMeta[] = data.images
